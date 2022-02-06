@@ -1,0 +1,7 @@
+---
+# The data names listed below won't be deleted
+exceptionData:
+  - "."
+  - ".."
+  - "..."
+...

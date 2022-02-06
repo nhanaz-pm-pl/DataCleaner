@@ -1,0 +1,11 @@
+---
+name: DataCleaning
+version: 1.0.0
+main: NhanAZ\DataCleaning\Main
+api: 4.0.0
+src-namespace-prefix: NhanAZ\DataCleaning
+
+website: https://github.com/NhanAZ
+description: Clean up unnecessary data inside plugin_data folder
+author: NhanAZ
+...
