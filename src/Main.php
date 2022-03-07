@@ -18,7 +18,7 @@ class Main extends PluginBase {
 	}
 
 	public function deletedMessage(string $data) {
-		return $this->getLogger()->notice("Deleted folder: " . $data);
+		$this->getLogger()->notice("Deleted folder: " . $data);
 	}
 
 	public function deleteDir($dir = null): void {
