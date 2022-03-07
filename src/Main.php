@@ -5,17 +5,28 @@ declare(strict_types=1);
 namespace NhanAZ\DataCleaning;
 
 use pocketmine\plugin\Plugin;
-use pocketmine\event\Listener;
 use pocketmine\plugin\PluginBase;
 
-class Main extends PluginBase implements Listener {
+class Main extends PluginBase {
 
-	public function deleteDir($dir = null) {
+	public function getDataPath() {
+		return $this->getServer()->getDataPath() . "plugin_data" . DIRECTORY_SEPARATOR;
+	}
+
+	public function getExceptionData() {
+		return $this->getConfig()->get("exceptionData",  [".", ".."]);
+	}
+
+	public function deletedMessage(string $data) {
+		return $this->getLogger()->notice("Deleted folder: " . $data);
+	}
+
+	public function deleteDir($dir = null): void {
 		if (is_dir($dir)) {
 			$objects = scandir($dir);
 			foreach ($objects as $object) {
 				if ($object != "." && $object != "..") {
-					$path = $dir . "/" . $object;
+					$path = $dir . DIRECTORY_SEPARATOR . $object;
 					if (filetype($path) == "dir") $this->deleteDir($path);
 					else unlink($path);
 				}
@@ -25,23 +36,46 @@ class Main extends PluginBase implements Listener {
 		}
 	}
 
-	protected function onEnable(): void {
-		$this->getServer()->getPluginManager()->registerEvents($this, $this);
-		$this->saveDefaultConfig();
-		$plugins = array_map(function (Plugin $plugin): string {
-			return $plugin->getDescription()->getName();
-		}, $this->getServer()->getPluginManager()->getPlugins());
-		$dataPath = $this->getServer()->getDataPath() . "plugin_data";
+	public function deleteEmptyFolder(): void {
+		$dataPath = $this->getDataPath();
 		foreach (scandir($dataPath) as $data) {
-			if (!in_array($data, $plugins)) {
-				$exceptionData = $this->getConfig()->get("exceptionData");
-				if (!in_array($data, $exceptionData)) {
-					if (is_dir($dataPath . "/" . $data)) {
-						$this->deleteDir($dataPath . "/" . $data);
-						$this->getLogger()->notice("Deleted folder: " . $data);
+			$exceptionData = $this->getExceptionData();
+			if (!in_array($data, $exceptionData)) {
+				foreach (array_diff(scandir($dataPath), [".", ".."]) as $data) {
+					$dir = $dataPath . $data;
+					if (is_readable($dir) && count(scandir($dir)) == 2) {
+						rmdir($dir);
+						$this->deletedMessage($data);
 					}
 				}
 			}
 		}
+	}
+
+	protected function onEnable(): void {
+		$this->saveDefaultConfig();
+		$this->deleteEmptyFolder();
+		$plugins = array_map(
+			function (Plugin $plugin): string {
+				return $plugin->getDescription()->getName();
+			},
+			$this->getServer()->getPluginManager()->getPlugins()
+		);
+		$dataPath = $this->getDataPath();
+		foreach (scandir($dataPath) as $data) {
+			if (!in_array($data, $plugins)) {
+				$exceptionData = $this->getExceptionData();
+				if (!in_array($data, $exceptionData)) {
+					if (is_dir($dataPath . $data)) {
+						$this->deleteDir($dataPath . $data);
+						$this->deletedMessage($data);
+					}
+				}
+			}
+		}
+	}
+
+	protected function onDisable(): void {
+		$this->deleteEmptyFolder();
 	}
 }

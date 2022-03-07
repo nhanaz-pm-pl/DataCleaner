@@ -1,7 +1,6 @@
 ---
 # The data names listed below won't be deleted
 exceptionData:
-  - "."
-  - ".."
-  - "..."
+  - "." # Don't delete this line!
+  - ".." # Don't delete this line!
 ...
