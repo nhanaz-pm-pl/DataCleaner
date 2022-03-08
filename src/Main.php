@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NhanAZ\DataCleaning;
 
+use pocketmine\Server;
 use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginBase;
 
@@ -57,6 +58,9 @@ class Main extends PluginBase {
 
 	protected function onEnable(): void {
 		$this->saveDefaultConfig();
+		if ((bool)$this->getServer()->getConfigGroup()->getProperty("plugins.legacy-data-dir", true)) {
+			return;
+		}
 		$this->deleteEmptyFolder();
 		$plugins = array_map(
 			function (Plugin $plugin): string {
