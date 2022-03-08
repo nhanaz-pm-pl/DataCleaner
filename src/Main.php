@@ -14,7 +14,8 @@ class Main extends PluginBase {
 	}
 
 	public function getExceptionData() {
-		return $this->getConfig()->get("exceptionData",  [".", ".."]);
+		$exceptionData = $this->getConfig()->get("exceptionData",  [".", ".."]);
+		return $exceptionData[] = [".", ".."];
 	}
 
 	public function deletedMessage(string $data) {
