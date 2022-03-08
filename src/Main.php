@@ -43,9 +43,11 @@ class Main extends PluginBase {
 			if (!in_array($data, $exceptionData)) {
 				foreach (array_diff(scandir($dataPath), [".", ".."]) as $data) {
 					$dir = $dataPath . $data;
-					if (is_readable($dir) && count(scandir($dir)) == 2) {
-						rmdir($dir);
-						$this->deletedMessage($data);
+					if (is_dir($dir)) {
+						if (is_readable($dir) && count(scandir($dir)) == 2) {
+							rmdir($dir);
+							$this->deletedMessage($data);
+						}
 					}
 				}
 			}
