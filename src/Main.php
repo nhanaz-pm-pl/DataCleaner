@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NhanAZ\DataCleaning;
 
-use pocketmine\Server;
 use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginBase;
 
@@ -14,13 +13,15 @@ class Main extends PluginBase {
 		return $this->getServer()->getDataPath() . "plugin_data" . DIRECTORY_SEPARATOR;
 	}
 
-	public function getExceptionData() {
+	public function getExceptionData(): array {
 		$exceptionData = $this->getConfig()->get("exceptionData",  [".", ".."]);
 		return $exceptionData[] = [".", ".."];
 	}
 
 	public function deletedMessage(string $data) {
-		$this->getLogger()->notice("Deleted folder: " . $data);
+		if ($this->getConfig()->get("deletedMessage", true)) {
+			$this->getLogger()->notice("Deleted folder: " . $data);
+		}
 	}
 
 	public function deleteDir($dir = null): void {
