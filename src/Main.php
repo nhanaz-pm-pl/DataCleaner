@@ -57,6 +57,9 @@ class Main extends PluginBase {
 		}
 	}
 
+	/**
+	 * @priority LOWEST
+	 */
 	protected function onEnable(): void {
 		$this->saveDefaultConfig();
 		if ((bool)$this->getServer()->getConfigGroup()->getProperty("plugins.legacy-data-dir", true)) {
