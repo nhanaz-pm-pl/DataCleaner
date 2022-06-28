@@ -9,22 +9,22 @@ use pocketmine\plugin\PluginBase;
 
 class Main extends PluginBase {
 
-	public function getDataPath() {
+	private function getDataPath() {
 		return $this->getServer()->getDataPath() . "plugin_data" . DIRECTORY_SEPARATOR;
 	}
 
-	public function getExceptionData(): array {
+	private function getExceptionData(): array {
 		$exceptionData = $this->getConfig()->get("exceptionData",  [".", ".."]);
 		return $exceptionData[] = [".", ".."];
 	}
 
-	public function deletedMessage(string $data) {
+	private function deletedMessage(string $data) {
 		if ($this->getConfig()->get("deletedMessage", true)) {
 			$this->getLogger()->notice("Deleted folder: " . $data);
 		}
 	}
 
-	public function deleteDir($dir = null): void {
+	private function deleteDir($dir = null): void {
 		if (is_dir($dir)) {
 			$objects = scandir($dir);
 			foreach ($objects as $object) {
@@ -39,7 +39,7 @@ class Main extends PluginBase {
 		}
 	}
 
-	public function deleteEmptyFolder(): void {
+	private function deleteEmptyFolder(): void {
 		$dataPath = $this->getDataPath();
 		foreach (scandir($dataPath) as $data) {
 			$exceptionData = $this->getExceptionData();
