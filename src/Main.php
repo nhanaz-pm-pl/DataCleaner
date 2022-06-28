@@ -86,6 +86,9 @@ class Main extends PluginBase {
 		}
 	}
 
+	/**
+	 * @priority LOWEST
+	 */
 	protected function onDisable(): void {
 		$this->deleteEmptyFolder();
 	}
