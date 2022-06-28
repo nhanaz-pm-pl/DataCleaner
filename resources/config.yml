@@ -1,8 +1,7 @@
 ---
 # The data names listed below won't be deleted
-exceptionData:
-  - "ExceptionFolderName1"
-  - "ExceptionFolderName2"
+# exceptionData: ["ExceptionFolderName1", "ExceptionFolderName2"]
+exceptionData: []
 
 # Notifications on the console when a certain folder is cleaned
 deletedMessage: true
