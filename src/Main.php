@@ -6,6 +6,7 @@ namespace NhanAZ\DataCleaning;
 
 use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginBase;
+use pocketmine\scheduler\ClosureTask;
 
 class Main extends PluginBase {
 
@@ -65,25 +66,27 @@ class Main extends PluginBase {
 		if ((bool)$this->getServer()->getConfigGroup()->getProperty("plugins.legacy-data-dir", true)) {
 			return;
 		}
-		$this->deleteEmptyFolder();
-		$plugins = array_map(
-			function (Plugin $plugin): string {
-				return $plugin->getDescription()->getName();
-			},
-			$this->getServer()->getPluginManager()->getPlugins()
-		);
-		$dataPath = $this->getDataPath();
-		foreach (scandir($dataPath) as $data) {
-			if (!in_array($data, $plugins)) {
-				$exceptionData = $this->getExceptionData();
-				if (!in_array($data, $exceptionData)) {
-					if (is_dir($dataPath . $data)) {
-						$this->deleteDir($dataPath . $data);
-						$this->deletedMessage($data);
+		$this->getScheduler()->scheduleDelayedTask(new ClosureTask(function (): void {
+			$this->deleteEmptyFolder();
+			$plugins = array_map(
+				function (Plugin $plugin): string {
+					return $plugin->getDescription()->getName();
+				},
+				$this->getServer()->getPluginManager()->getPlugins()
+			);
+			$dataPath = $this->getDataPath();
+			foreach (scandir($dataPath) as $data) {
+				if (!in_array($data, $plugins)) {
+					$exceptionData = $this->getExceptionData();
+					if (!in_array($data, $exceptionData)) {
+						if (is_dir($dataPath . $data)) {
+							$this->deleteDir($dataPath . $data);
+							$this->deletedMessage($data);
+						}
 					}
 				}
 			}
-		}
+		}), 20);
 	}
 
 	/**
