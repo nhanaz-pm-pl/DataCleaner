@@ -3,7 +3,6 @@ name: DataCleaning
 version: 3.0.4+dev
 main: NhanAZ\DataCleaning\Main
 api: 5.0.0
-src-namespace-prefix: NhanAZ\DataCleaning
 website: https://github.com/NhanAZ
 description: Clean up unnecessary data inside plugin_data folder
 author: NhanAZ
