@@ -24,9 +24,17 @@ class Main extends PluginBase {
 		return $exceptionData[] = [".", ".."];
 	}
 
-	private function deleteMessage(string $data) {
+	private function deleteMessage(string $data, string $dataType) {
 		if ($this->getConfig()->get("deleteMessageMode", true)) {
-			$deleteMessage = str_replace("{data}", $data, $this->getConfig()->get("deleteMessage", "&aDeleted: &b{data}"));
+			$replacatements = [
+				"{data}" => $data,
+				"{dataType}" => $dataType
+			];
+			$deleteMessage = str_replace(
+				array_keys($replacatements),
+				array_values($replacatements),
+				$this->getConfig()->get("deleteMessage", "&aDeleted: &b{data} &6[{dataType}]")
+			);
 			$this->getLogger()->info(TextFormat::colorize($deleteMessage));
 		}
 	}
@@ -56,7 +64,7 @@ class Main extends PluginBase {
 					if (is_dir($dir)) {
 						if (is_readable($dir) && count(scandir($dir)) == 2) {
 							rmdir($dir);
-							$this->deleteMessage($data);
+							$this->deleteMessage($data, "Empty folder");
 						}
 					}
 				}
@@ -88,7 +96,7 @@ class Main extends PluginBase {
 					if (!in_array($data, $exceptionData)) {
 						if (is_dir($dataPath . $data)) {
 							$this->deleteDir($dataPath . $data);
-							$this->deleteMessage($data);
+							$this->deleteMessage($data, "Plugin folder doesn't exist");
 						}
 					}
 				}
