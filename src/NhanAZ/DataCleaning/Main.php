@@ -7,6 +7,7 @@ namespace NhanAZ\DataCleaning;
 use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginBase;
 use pocketmine\scheduler\ClosureTask;
+use pocketmine\utils\TextFormat;
 
 class Main extends PluginBase {
 
@@ -21,9 +22,10 @@ class Main extends PluginBase {
 		return $exceptionData[] = [".", ".."];
 	}
 
-	private function deletedMessage(string $data) {
-		if ($this->getConfig()->get("deletedMessage", true)) {
-			$this->getLogger()->notice("Deleted folder: " . $data);
+	private function deleteMessage(string $data) {
+		if ($this->getConfig()->get("deleteMessageMode", true)) {
+			$deleteMessage = str_replace("{data}", $data, $this->getConfig()->get("deleteMessage", "&aDeleted: &b{data}"));
+			$this->getLogger()->info(TextFormat::colorize($deleteMessage));
 		}
 	}
 
@@ -52,7 +54,7 @@ class Main extends PluginBase {
 					if (is_dir($dir)) {
 						if (is_readable($dir) && count(scandir($dir)) == 2) {
 							rmdir($dir);
-							$this->deletedMessage($data);
+							$this->deleteMessage($data);
 						}
 					}
 				}
@@ -83,7 +85,7 @@ class Main extends PluginBase {
 					if (!in_array($data, $exceptionData)) {
 						if (is_dir($dataPath . $data)) {
 							$this->deleteDir($dataPath . $data);
-							$this->deletedMessage($data);
+							$this->deleteMessage($data);
 						}
 					}
 				}
