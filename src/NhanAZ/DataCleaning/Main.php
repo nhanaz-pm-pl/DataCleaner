@@ -10,6 +10,8 @@ use pocketmine\scheduler\ClosureTask;
 
 class Main extends PluginBase {
 
+	// It's a mess, please don't mind it :)
+
 	private function getDataPath() {
 		return $this->getServer()->getDataPath() . "plugin_data" . DIRECTORY_SEPARATOR;
 	}
@@ -63,7 +65,7 @@ class Main extends PluginBase {
 	 */
 	protected function onEnable(): void {
 		$this->saveDefaultConfig();
-		if ((bool)$this->getServer()->getConfigGroup()->getProperty("plugins.legacy-data-dir", true)) {
+		if ((bool)$this->getServer()->getConfigGroup()->getProperty("plugins.legacy-data-dir")) {
 			return;
 		}
 		$this->getScheduler()->scheduleDelayedTask(new ClosureTask(function (): void {
@@ -86,7 +88,7 @@ class Main extends PluginBase {
 					}
 				}
 			}
-		}), 20);
+		}), $this->getConfig()->get("delayTime", 1) * 20);
 	}
 
 	/**

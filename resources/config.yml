@@ -5,4 +5,8 @@ exceptionData: []
 
 # Notifications on the console when a certain folder is cleaned
 deletedMessage: true
+
+# Will start cleaning after ... seconds
+# Increase this value if the plugins in your server have a long load time
+delayTime: 1 # Seconds
 ...
