@@ -70,6 +70,7 @@ class Main extends PluginBase {
 	protected function onEnable(): void {
 		$this->saveDefaultConfig();
 		if ((bool)$this->getServer()->getConfigGroup()->getProperty("plugins.legacy-data-dir")) {
+			$this->getLogger()->warning("legacy-data-dir detected, please disable it in the pocketmine.yml");
 			return;
 		}
 		$this->getScheduler()->scheduleDelayedTask(new ClosureTask(function (): void {
