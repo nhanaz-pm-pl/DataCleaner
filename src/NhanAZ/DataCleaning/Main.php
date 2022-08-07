@@ -75,7 +75,7 @@ class Main extends PluginBase {
 	}
 
 	private function checkConfig(): void {
-		$configVersion = $this->getConfig()->exists("version") ? $this->getConfig()->get("version") : "0.0.0";
+		$configVersion = $this->getConfig()->exists("configVersion") ? $this->getConfig()->get("configVersion") : "0.0.0";
 		if (version_compare($configVersion, self::CONFIG_VERSION, "<>")) {
 			$this->getLogger()->notice("Your configuration file is invalid, updating the config.yml...");
 			$this->getLogger()->notice("Invalid configuration file can be found at config_invalid.yml");
