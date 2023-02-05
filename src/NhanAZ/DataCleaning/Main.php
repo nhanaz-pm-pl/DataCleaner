@@ -13,10 +13,6 @@ class Main extends PluginBase {
 
 	const CONFIG_VERSION = "1.0.0";
 
-	// It's a mess, please don't mind it :)
-	// I'm sorry for the bad code, I'm new to PHP and I don't know how to make it better (Suggestions from the Github Copilot and it was telling the truth)
-	// Want to clean up this mess XD? Create a pull request at: https://github.com/nhanaz-pm-pl/DataCleaning/pulls
-
 	private function getDataPath() {
 		return $this->getServer()->getDataPath() . "plugin_data" . DIRECTORY_SEPARATOR;
 	}
