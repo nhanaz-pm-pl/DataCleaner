@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NhanAZ\DataCleaning;
+namespace NhanAZ\DataCleaner;
 
 use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginBase;
