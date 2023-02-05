@@ -10,6 +10,8 @@ use pocketmine\scheduler\ClosureTask;
 
 class Main extends PluginBase {
 
+	// Sorry Poggit Reviewers, The code of this plugin is not clean!
+
 	private array $deletedData = [];
 
 	private function getDataPath() {
