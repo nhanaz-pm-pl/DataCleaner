@@ -8,9 +8,8 @@ deleteMessageMode: true
 
 # Message on the console when a certain folder is cleaned
 # This option will be disabled if deleteMessageMode: false
-# {data} : Deleted data name
-# {dataType} : Deleted folder type
-deleteMessage: "&aDeleted: &b{data} &6[{dataType}]"
+# {data} : Deleted data
+deleteMessage: "&aDeleted: &b{data}"
 
 # Will start cleaning after ... seconds
 # Increase this value if the plugins in your server have a long load time

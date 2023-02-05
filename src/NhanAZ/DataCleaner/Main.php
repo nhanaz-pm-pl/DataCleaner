@@ -11,6 +11,8 @@ use pocketmine\utils\TextFormat;
 
 class Main extends PluginBase {
 
+	private array $deletedData = [];
+
 	private function getDataPath() {
 		return $this->getServer()->getDataPath() . "plugin_data" . DIRECTORY_SEPARATOR;
 	}
@@ -20,17 +22,10 @@ class Main extends PluginBase {
 		return $exceptionData[] = [".", ".."];
 	}
 
-	private function deleteMessage(string $data, string $dataType) {
+	private function deleteMessage() {
 		if ($this->getConfig()->get("deleteMessageMode")) {
-			$replacatements = [
-				"{data}" => $data,
-				"{dataType}" => $dataType
-			];
-			$deleteMessage = str_replace(
-				array_keys($replacatements),
-				array_values($replacatements),
-				$this->getConfig()->get("deleteMessage")
-			);
+			$deletedData = implode(", ", $this->deletedData) . ".";
+			$deleteMessage = str_replace("{data}", $deletedData, $this->getConfig()->get("deleteMessage"));
 			$this->getLogger()->info(TextFormat::colorize($deleteMessage));
 		}
 	}
@@ -41,7 +36,7 @@ class Main extends PluginBase {
 			foreach ($objects as $object) {
 				if ($object != "." && $object != "..") {
 					$path = $dir . DIRECTORY_SEPARATOR . $object;
-					if (filetype($path) == "dir") $this->deleteDir($path);
+					if (is_dir($path)) $this->deleteDir($path);
 					else unlink($path);
 				}
 			}
@@ -60,7 +55,7 @@ class Main extends PluginBase {
 					if (is_dir($dir)) {
 						if (is_readable($dir) && count(scandir($dir)) == 2) {
 							rmdir($dir);
-							$this->deleteMessage($data, "Empty folder");
+							array_push($this->deletedData, $data);
 						}
 					}
 				}
@@ -73,7 +68,7 @@ class Main extends PluginBase {
 	 */
 	protected function onEnable(): void {
 		$this->saveDefaultConfig();
-		if ((bool)$this->getServer()->getConfigGroup()->getProperty("plugins.legacy-data-dir")) {
+		if ($this->getServer()->getConfigGroup()->getProperty("plugins.legacy-data-dir")) {
 			$this->getLogger()->warning("legacy-data-dir detected, please disable it in the pocketmine.yml");
 			return;
 		}
@@ -92,11 +87,12 @@ class Main extends PluginBase {
 					if (!in_array($data, $exceptionData)) {
 						if (is_dir($dataPath . $data)) {
 							$this->deleteDir($dataPath . $data);
-							$this->deleteMessage($data, "Plugin folder doesn't exist");
+							array_push($this->deletedData, $data);
 						}
 					}
 				}
 			}
+			$this->deleteMessage($this->deletedData);
 		}), $this->getConfig()->get("delayTime") * 20);
 	}
 
