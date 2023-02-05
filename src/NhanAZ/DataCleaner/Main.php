@@ -90,7 +90,7 @@ class Main extends PluginBase {
 					}
 				}
 			}
-			$this->deleteMessage($this->deletedData);
+			$this->deleteMessage();
 		}), $this->getConfig()->get("delayTime") * 20);
 	}
 
