@@ -3,14 +3,6 @@
 # exceptionData: ["ExceptionFolderName1", "ExceptionFolderName2"]
 exceptionData: []
 
-# Notification of deleted datas on console
-deleteMessageMode: true
-
-# Message on the console when a certain folder is cleaned
-# This option will be disabled if deleteMessageMode: false
-# {data} : Deleted data
-deleteMessage: "&aDeleted: &b{data}"
-
 # Will start cleaning after ... seconds
 # Increase this value if the plugins in your server have a long load time
 delayTime: 1 # Seconds

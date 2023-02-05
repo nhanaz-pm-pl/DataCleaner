@@ -7,7 +7,6 @@ namespace NhanAZ\DataCleaner;
 use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginBase;
 use pocketmine\scheduler\ClosureTask;
-use pocketmine\utils\TextFormat;
 
 class Main extends PluginBase {
 
@@ -23,11 +22,10 @@ class Main extends PluginBase {
 	}
 
 	private function deleteMessage() {
-		if ($this->getConfig()->get("deleteMessageMode")) {
-			$deletedData = implode(", ", $this->deletedData) . ".";
-			$deleteMessage = str_replace("{data}", $deletedData, $this->getConfig()->get("deleteMessage"));
-			$this->getLogger()->info(TextFormat::colorize($deleteMessage));
-		}
+		$deletedData = implode("§f,§a ", $this->deletedData);
+		$dataCount = count($this->deletedData);
+		$deleteMessage = "§fDeleted data ($dataCount): §a$deletedData";
+		$this->getLogger()->info($deleteMessage);
 	}
 
 	private function deleteDir($dir = null): void {

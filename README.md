@@ -1,7 +1,7 @@
 # General
 **Clean up unnecessary files in plugin_data. Eg: Empty folder, plugin folder doesn't exist**
 
-![image](https://user-images.githubusercontent.com/60387689/181310592-bacabed7-43c5-4bb2-8270-58e32a71b50b.png)
+![image](https://user-images.githubusercontent.com/60387689/216828474-901c0d36-daa6-4452-a99b-f5377b2ba23b.png)
 
 
 # Contact
