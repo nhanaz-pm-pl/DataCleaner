@@ -16,12 +16,12 @@ class Main extends PluginBase {
 	}
 
 	private function getExceptionData(): array {
-		$exceptionData = $this->getConfig()->get("exceptionData",  [".", ".."]);
+		$exceptionData = $this->getConfig()->get("exceptionData");
 		return $exceptionData[] = [".", ".."];
 	}
 
 	private function deleteMessage(string $data, string $dataType) {
-		if ($this->getConfig()->get("deleteMessageMode", true)) {
+		if ($this->getConfig()->get("deleteMessageMode")) {
 			$replacatements = [
 				"{data}" => $data,
 				"{dataType}" => $dataType
@@ -29,7 +29,7 @@ class Main extends PluginBase {
 			$deleteMessage = str_replace(
 				array_keys($replacatements),
 				array_values($replacatements),
-				$this->getConfig()->get("deleteMessage", "&aDeleted: &b{data} &6[{dataType}]")
+				$this->getConfig()->get("deleteMessage")
 			);
 			$this->getLogger()->info(TextFormat::colorize($deleteMessage));
 		}
@@ -97,7 +97,7 @@ class Main extends PluginBase {
 					}
 				}
 			}
-		}), $this->getConfig()->get("delayTime", 1) * 20);
+		}), $this->getConfig()->get("delayTime") * 20);
 	}
 
 	/**
