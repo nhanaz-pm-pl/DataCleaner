@@ -15,7 +15,4 @@ deleteMessage: "&aDeleted: &b{data} &6[{dataType}]"
 # Will start cleaning after ... seconds
 # Increase this value if the plugins in your server have a long load time
 delayTime: 1 # Seconds
-
-# Config version
-configVersion: "1.0.0" # Please don't edit or delete this line
 ...

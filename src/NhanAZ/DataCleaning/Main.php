@@ -11,8 +11,6 @@ use pocketmine\utils\TextFormat;
 
 class Main extends PluginBase {
 
-	const CONFIG_VERSION = "1.0.0";
-
 	private function getDataPath() {
 		return $this->getServer()->getDataPath() . "plugin_data" . DIRECTORY_SEPARATOR;
 	}
@@ -70,22 +68,10 @@ class Main extends PluginBase {
 		}
 	}
 
-	private function checkConfig(): void {
-		$configVersion = $this->getConfig()->exists("configVersion") ? $this->getConfig()->get("configVersion") : "0.0.0";
-		if (version_compare($configVersion, self::CONFIG_VERSION, "<>")) {
-			$this->getLogger()->warning("Your configuration file is invalid, updating the config.yml...");
-			$this->getLogger()->warning("Invalid configuration file can be found at config_invalid.yml");
-			rename($this->getDataFolder() . "config.yml", $this->getDataFolder() . "config_invalid.yml");
-			$this->saveDefaultConfig();
-			$this->getConfig()->reload();
-		}
-	}
-
 	/**
 	 * @priority LOWEST
 	 */
 	protected function onEnable(): void {
-		$this->checkConfig();
 		$this->saveDefaultConfig();
 		if ((bool)$this->getServer()->getConfigGroup()->getProperty("plugins.legacy-data-dir")) {
 			$this->getLogger()->warning("legacy-data-dir detected, please disable it in the pocketmine.yml");
