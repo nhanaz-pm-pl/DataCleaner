@@ -12,8 +12,6 @@ class Main extends PluginBase {
 
 	// Sorry Poggit Reviewers, The code of this plugin is not clean!
 
-	private array $deletedData = [];
-
 	private function getDataPath() {
 		return $this->getServer()->getDataPath() . "plugin_data" . DIRECTORY_SEPARATOR;
 	}
@@ -23,11 +21,8 @@ class Main extends PluginBase {
 		return $exceptionData[] = [".", ".."];
 	}
 
-	private function deleteMessage() {
-		$deletedData = implode("§f,§a ", $this->deletedData);
-		$dataCount = count($this->deletedData);
-		$deleteMessage = "§fDeleted data ($dataCount): §a$deletedData";
-		$this->getLogger()->info($deleteMessage);
+	private function deleteMessage(array $deleted): void {
+		$this->getLogger()->info("§fDeleted data (" .count($deleted). "): §a" .implode("§f,§a ", $deleted));
 	}
 
 	public function deleteFilesInFolder(string $path): void {
@@ -36,14 +31,19 @@ class Main extends PluginBase {
 				if (!$fileInfo->isDir()) {
 					unlink($fileInfo->getPathname());
 				} else {
-          $this->deleteFilesInFolder($fileInfo->getPathname());
-          rmdir($fileInfo->getPathname());
-        }
+					$this->deleteFilesInFolder($fileInfo->getPathname());
+					rmdir($fileInfo->getPathname());
+				}
 			}
 		}
 	}
 
-	public function deleteEmptyFolder(string $path): void {
+	/**
+	 * @return string[]
+	 * return all deleted files
+	 */
+	public function deleteEmptyFolder(string $path): array {
+		$deleted = [];
 		foreach (new \DirectoryIterator($path) as $fileInfo) {
 			$fileName = $fileInfo->getFilename();
 			if (!in_array($fileName, $this->getExceptionData())) {
@@ -51,13 +51,15 @@ class Main extends PluginBase {
 					// Check if is empty
 					if (count(scandir($fileInfo->getPathname())) <= 2) {
 						rmdir($fileInfo->getPathname());
-						array_push($this->deletedData, $fileInfo->getPathname());
+						array_push($deleted, $fileInfo->getFilename());
 					} else {
-						$this->deleteEmptyFolder($fileInfo->getPathname());
+						array_push($deleted, ...$this->deleteEmptyFolder($fileInfo->getPathname()));
 					}
 				}
 			}
 		}
+
+		return $deleted;
 	}
 
 	/**
@@ -70,7 +72,7 @@ class Main extends PluginBase {
 			return;
 		}
 		$this->getScheduler()->scheduleDelayedTask(new ClosureTask(function (): void {
-			$this->deleteEmptyFolder($this->getDataPath());
+			$deleted = $this->deleteEmptyFolder($this->getDataPath());
 			$plugins = array_map(
 				function (Plugin $plugin): string {
 					return $plugin->getDescription()->getName();
@@ -83,11 +85,11 @@ class Main extends PluginBase {
 					if (!in_array($fileName, $this->getExceptionData(), true)) {
 						$this->deleteFilesInFolder($fileInfo->getPathname());
 						rmdir($fileInfo->getPathname());
-						array_push($this->deletedData, $fileName);
+						array_push($deleted, $fileName);
 					}
 				}
 			}
-			$this->deleteMessage();
+			$this->deleteMessage($deleted);
 		}), $this->getConfig()->get("delayTime") * 20);
 	}
 
