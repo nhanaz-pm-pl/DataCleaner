@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NhanAZ\DataCleaner;
 
-use DirectoryIterator;
 use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginBase;
 use pocketmine\scheduler\ClosureTask;
@@ -32,11 +31,11 @@ class Main extends PluginBase {
 	}
 
 	public function deleteEmptyFolder(string $path): void {
-		foreach (new DirectoryIterator($path) as $fileInfo) {
+		foreach (new \DirectoryIterator($path) as $fileInfo) {
 			$fileName = $fileInfo->getFilename();
 			if (!in_array($fileName, $this->getExceptionData())) {
 				if ($fileInfo->isDir()) {
-					//Cehck if is empty
+					// Check if is empty
 					if (count(scandir($fileInfo->getPathname())) <= 2) {
 						rmdir($fileInfo->getPathname());
 						array_push($this->deletedData, $fileName);
@@ -65,7 +64,7 @@ class Main extends PluginBase {
 				},
 				$this->getServer()->getPluginManager()->getPlugins()
 			);
-			foreach (new DirectoryIterator($this->getDataPath()) as $fileInfo) {
+			foreach (new \DirectoryIterator($this->getDataPath()) as $fileInfo) {
 				$fileName = $fileInfo->getFilename();
 				if (!in_array($fileName, $plugins)) {
 					if (!in_array($fileName, $this->getExceptionData())) {
