@@ -53,7 +53,7 @@ class Main extends PluginBase {
 	protected function onEnable(): void {
 		$this->saveDefaultConfig();
 		if ($this->getServer()->getConfigGroup()->getProperty("plugins.legacy-data-dir")) {
-			$this->getLogger()->warning("legacy-data-dir detected, please disable it in the pocketmine.yml");
+			$this->getLogger()->warning("legacy-data-dir is true, please set it to false in the pocketmine.yml");
 			return;
 		}
 		$this->getScheduler()->scheduleDelayedTask(new ClosureTask(function (): void {
@@ -83,6 +83,10 @@ class Main extends PluginBase {
 	 * @priority LOWEST
 	 */
 	protected function onDisable(): void {
+		if ($this->getServer()->getConfigGroup()->getProperty("plugins.legacy-data-dir")) {
+			$this->getLogger()->warning("legacy-data-dir is true, please set it to false in the pocketmine.yml");
+			return;
+		}
 		$this->deleteEmptyFolder($this->getDataPath());
 	}
 }
