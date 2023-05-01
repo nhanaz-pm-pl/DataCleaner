@@ -53,9 +53,9 @@ class Main extends PluginBase {
 						rmdir($fileInfo->getPathname());
 						array_push($deleted, $fileInfo->getFilename());
 					} else {
-            if (count($this->deleteEmptyFolder($fileInfo->getPathname()))) {
-              $deleted[] = $fileName;
-            }
+						if (count($this->deleteEmptyFolder($fileInfo->getPathname()))) {
+							$deleted[] = $fileName;
+						}
 					}
 				}
 			}
