@@ -22,7 +22,7 @@ class Main extends PluginBase {
 	}
 
 	private function deleteMessage(array $deleted): void {
-		$this->getLogger()->info("§fDeleted data (" .count($deleted). "): §a" .implode("§f,§a ", $deleted));
+		$this->getLogger()->info("§fDeleted data (" . count($deleted) . "): §a" . implode("§f,§a ", $deleted));
 	}
 
 	public function deleteFilesInFolder(string $path): void {
