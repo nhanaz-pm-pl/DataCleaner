@@ -31,22 +31,22 @@ class Main extends PluginBase {
 		$this->getLogger()->info($deleteMessage);
 	}
 
-  public function deleteEmptyFolder(string $path): void {
-    foreach (new DirectoryIterator($path) as $fileInfo) {
-      $fileName = $fileInfo->getFilename();
-      if (!in_array($fileName, $this->getExceptionData())) {
-        if ($fileInfo->isDir()) {
-          //Cehck if is empty
-          if (count(scandir($fileInfo->getPathname())) <= 2) {
-            rmdir($fileInfo->getPathname());
-            array_push($this->deletedData, $fileName);
-          } else {
-            $this->deleteEmptyFolder($fileInfo->getPathname());
-          }
-        }
-      }
-    }
-  }
+	public function deleteEmptyFolder(string $path): void {
+		foreach (new DirectoryIterator($path) as $fileInfo) {
+			$fileName = $fileInfo->getFilename();
+			if (!in_array($fileName, $this->getExceptionData())) {
+				if ($fileInfo->isDir()) {
+					//Cehck if is empty
+					if (count(scandir($fileInfo->getPathname())) <= 2) {
+						rmdir($fileInfo->getPathname());
+						array_push($this->deletedData, $fileName);
+					} else {
+						$this->deleteEmptyFolder($fileInfo->getPathname());
+					}
+				}
+			}
+		}
+	}
 
 	/**
 	 * @priority LOWEST
@@ -65,10 +65,10 @@ class Main extends PluginBase {
 				},
 				$this->getServer()->getPluginManager()->getPlugins()
 			);
-      foreach (new DirectoryIterator($this->getDataPath()) as $fileInfo) {
+			foreach (new DirectoryIterator($this->getDataPath()) as $fileInfo) {
 				$fileName = $fileInfo->getFilename();
-        if (!in_array($fileName, $plugins)) {
-          if (!in_array($fileName, $this->getExceptionData())) {
+				if (!in_array($fileName, $plugins)) {
+					if (!in_array($fileName, $this->getExceptionData())) {
 						if (is_dir($fileInfo->getPathname())) {
 							rmdir($fileInfo->getPathname());
 							array_push($this->deletedData, $fileInfo);
