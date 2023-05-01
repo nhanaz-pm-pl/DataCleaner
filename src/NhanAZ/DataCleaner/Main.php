@@ -30,6 +30,19 @@ class Main extends PluginBase {
 		$this->getLogger()->info($deleteMessage);
 	}
 
+	public function deleteFolder(string $path): void {
+		foreach (new \DirectoryIterator($path) as $fileInfo) {
+			if (!$fileInfo->isDot()) {
+				if ($fileInfo->isDir()) {
+					$this->deleteEmptyFolder($fileInfo->getPathname());
+				} else {
+					unlink($fileInfo->getPathname());
+					array_push($this->deletedData, $fileInfo->getFilename());
+				}
+			}
+		}
+	}
+
 	public function deleteEmptyFolder(string $path): void {
 		foreach (new \DirectoryIterator($path) as $fileInfo) {
 			$fileName = $fileInfo->getFilename();
@@ -68,10 +81,7 @@ class Main extends PluginBase {
 				$fileName = $fileInfo->getFilename();
 				if (!in_array($fileName, $plugins)) {
 					if (!in_array($fileName, $this->getExceptionData())) {
-						if (is_dir($fileInfo->getPathname())) {
-							rmdir($fileInfo->getPathname());
-							array_push($this->deletedData, $fileInfo);
-						}
+						$this->deleteFolder($fileInfo->getPathname());
 					}
 				}
 			}
