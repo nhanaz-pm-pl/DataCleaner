@@ -25,9 +25,43 @@ class Main extends PluginBase {
 		$this->getLogger()->info("§fDeleted data (" . count($deleted) . "): §a" . implode("§f,§a ", $deleted));
 	}
 
+	/**
+	 * @return bool true on success or false on failure.
+	 */
+	public function delete(\DirectoryIterator $fileInfo): bool {
+		if ($fileInfo->isDir()) {
+			return $this->deleteFolder($fileInfo);
+		}
+
+		return $this->deleteFile($fileInfo);
+	}
+
+	/**
+	 * @return bool true on success or false on failure.
+	 */
+	public function deleteFile(\DirectoryIterator $file): bool {
+		if (in_array($file->getFilename(), $this->getExceptionData(), true)) {
+			return false;
+		}
+
+		return unlink($file->getPathname());
+	}
+
+	/**
+	 * @return bool true on success or false on failure.
+	 */
+	public function deleteFolder(\DirectoryIterator $folder): bool {
+		if (in_array($folder->getFilename(), $this->getExceptionData(), true)) {
+			return false;
+		}
+
+		$this->deleteFilesInFolder($folder->getPathname());
+		return rmdir($folder->getPathname());
+	}
+
 	public function deleteFilesInFolder(string $path): void {
 		foreach (new \DirectoryIterator($path) as $fileInfo) {
-			if (!$fileInfo->isDot()) {
+			if (!in_array($fileInfo->getFilename(), $this->getExceptionData(), true)) {
 				if (!$fileInfo->isDir()) {
 					unlink($fileInfo->getPathname());
 				} else {
@@ -84,13 +118,7 @@ class Main extends PluginBase {
 			foreach (new \DirectoryIterator($this->getDataPath()) as $fileInfo) {
 				$fileName = $fileInfo->getFilename();
 				if (!in_array($fileName, $plugins, true)) {
-					if (!in_array($fileName, $this->getExceptionData(), true)) {
-						if (is_dir($fileName)) {
-							$this->deleteFilesInFolder($fileInfo->getPathname());
-							rmdir($fileInfo->getPathname());
-						} else {
-							unlink($fileInfo->getPathname());
-						}
+					if ($this->delete($fileInfo)) {
 						array_push($deleted, $fileName);
 					}
 				}
