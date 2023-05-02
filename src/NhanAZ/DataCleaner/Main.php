@@ -53,7 +53,7 @@ class Main extends PluginBase {
 						rmdir($fileInfo->getPathname());
 						array_push($deleted, $fileInfo->getFilename());
 					} else {
-						if (count($this->deleteEmptyFolder($fileInfo->getPathname()))) {
+						if (!empty($this->deleteEmptyFolder($fileInfo->getPathname()))) {
 							$deleted[] = $fileName;
 						}
 					}
@@ -85,8 +85,12 @@ class Main extends PluginBase {
 				$fileName = $fileInfo->getFilename();
 				if (!in_array($fileName, $plugins, true)) {
 					if (!in_array($fileName, $this->getExceptionData(), true)) {
-						$this->deleteFilesInFolder($fileInfo->getPathname());
-						rmdir($fileInfo->getPathname());
+						if (is_dir($fileName)) {
+							$this->deleteFilesInFolder($fileInfo->getPathname());
+							rmdir($fileInfo->getPathname());
+						} else {
+							unlink($fileInfo->getPathname());
+						}
 						array_push($deleted, $fileName);
 					}
 				}
