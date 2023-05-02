@@ -10,12 +10,6 @@ use pocketmine\scheduler\ClosureTask;
 
 class Main extends PluginBase {
 
-	// Sorry Poggit Reviewers, The code of this plugin is not clean!
-
-	private function getDataPath() {
-		return $this->getServer()->getDataPath() . "plugin_data" . DIRECTORY_SEPARATOR;
-	}
-
 	private function getExceptionData(): array {
 		return array_merge($this->getConfig()->get("exceptionData", []), [".", ".."]);
 	}
@@ -25,11 +19,13 @@ class Main extends PluginBase {
 	}
 
 	/**
+	 * @param bool $justEmpty (only for folders) true delete the folder only if it is empty or false delete the folder and all its contents
+	 *
 	 * @return bool true on success or false on failure.
 	 */
-	public function delete(\DirectoryIterator $fileInfo): bool {
+	public function delete(\DirectoryIterator $fileInfo, bool $justEmpty = false): bool {
 		if ($fileInfo->isDir()) {
-			return $this->deleteFolder($fileInfo);
+			return $this->deleteFolder($fileInfo, $justEmpty);
 		}
 
 		return $this->deleteFile($fileInfo);
@@ -39,7 +35,9 @@ class Main extends PluginBase {
 	 * @return bool true on success or false on failure.
 	 */
 	public function deleteFile(\DirectoryIterator $file): bool {
-		if (in_array($file->getFilename(), $this->getExceptionData(), true)) {
+		if (!$file->isFile()) {
+			throw new \InvalidArgumentException($file->getFilename() . " file must be a file and not a folder");
+		} elseif (in_array($file->getFilename(), $this->getExceptionData(), true)) {
 			return false;
 		}
 
@@ -47,53 +45,42 @@ class Main extends PluginBase {
 	}
 
 	/**
+	 * @param bool $justEmpty true delete the folder only if it is empty or false delete the folder and all its contents
+	 *
 	 * @return bool true on success or false on failure.
 	 */
-	public function deleteFolder(\DirectoryIterator $folder): bool {
-		if (in_array($folder->getFilename(), $this->getExceptionData(), true)) {
+	public function deleteFolder(\DirectoryIterator $folder, bool $justEmpty = false): bool {
+		if (!$folder->isDir()) {
+			throw new \InvalidArgumentException($folder->getFilename() . " file must be a folder and not a file");
+		} elseif (in_array($folder->getFilename(), $this->getExceptionData(), true)) {
 			return false;
 		}
 
-		$this->deleteFilesInFolder($folder->getPathname());
+		if ($justEmpty) {
+			$filePathName = $folder->getPathname();
+			// Check if is empty
+			if (count(scandir($filePathName)) <= 2) {
+				return rmdir($filePathName);
+			}
+
+			$result = true;
+			foreach (new \DirectoryIterator($folder->getPathname()) as $fileInfo) {
+				if ($fileInfo->isFile()) return false;
+				$result &= $this->deleteFolder($fileInfo, true);
+			}
+			return $result;
+		}
+
+		$this->deleteFilesInFolder($folder);
 		return rmdir($folder->getPathname());
 	}
 
-	public function deleteFilesInFolder(string $path): void {
-		foreach (new \DirectoryIterator($path) as $fileInfo) {
-			$this->delete($fileInfo);
+	public function deleteFilesInFolder(\DirectoryIterator $folder): void {
+		foreach (new \DirectoryIterator($folder->getPathname()) as $fileInfo) {
+			$this->delete($fileInfo, false);
 		}
 	}
 
-	/**
-	 * @return string[]
-	 * return all deleted files
-	 */
-	public function deleteEmptyFolder(string $path): array {
-		$deleted = [];
-		foreach (new \DirectoryIterator($path) as $fileInfo) {
-			$fileName = $fileInfo->getFilename();
-			if (!in_array($fileName, $this->getExceptionData())) {
-				if ($fileInfo->isDir()) {
-					$filePathName = $fileInfo->getPathname();
-					// Check if is empty
-					if (count(scandir($filePathName)) <= 2) {
-						rmdir($filePathName);
-						array_push($deleted, $fileName);
-					} else {
-						if (!empty($this->deleteEmptyFolder($filePathName))) {
-							array_push($deleted, $fileName);
-						}
-					}
-				}
-			}
-		}
-
-		return $deleted;
-	}
-
-	/**
-	 * @priority LOWEST
-	 */
 	protected function onEnable(): void {
 		$this->saveDefaultConfig();
 		if ($this->getServer()->getConfigGroup()->getProperty("plugins.legacy-data-dir")) {
@@ -101,33 +88,22 @@ class Main extends PluginBase {
 			return;
 		}
 		$this->getScheduler()->scheduleDelayedTask(new ClosureTask(function (): void {
-			$deleted = $this->deleteEmptyFolder($this->getDataPath());
 			$plugins = array_map(
 				function (Plugin $plugin): string {
 					return $plugin->getDescription()->getName();
 				},
 				$this->getServer()->getPluginManager()->getPlugins()
 			);
-			foreach (new \DirectoryIterator($this->getDataPath()) as $fileInfo) {
+
+			$deleted = [];
+			foreach (new \DirectoryIterator($this->getServer()->getDataPath() . "plugin_data" . DIRECTORY_SEPARATOR) as $fileInfo) {
 				$fileName = $fileInfo->getFilename();
-				if (!in_array($fileName, $plugins, true)) {
-					if ($this->delete($fileInfo)) {
-						array_push($deleted, $fileName);
-					}
+				$success = $this->delete($fileInfo, in_array($fileName, $plugins, true));
+				if ($success) {
+					array_push($deleted, $fileName);
 				}
 			}
 			$this->deleteMessage($deleted);
-		}), $this->getConfig()->get("delayTime") * 20);
-	}
-
-	/**
-	 * @priority LOWEST
-	 */
-	protected function onDisable(): void {
-		if ($this->getServer()->getConfigGroup()->getProperty("plugins.legacy-data-dir")) {
-			$this->getLogger()->warning("legacy-data-dir is true, please set it to false in the pocketmine.yml");
-			return;
-		}
-		$this->deleteEmptyFolder($this->getDataPath());
+		}), $this->getConfig()->get("delayTime", 1) * 20);
 	}
 }
