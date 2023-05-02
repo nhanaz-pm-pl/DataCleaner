@@ -17,8 +17,7 @@ class Main extends PluginBase {
 	}
 
 	private function getExceptionData(): array {
-		$exceptionData = $this->getConfig()->get("exceptionData");
-		return $exceptionData[] = [".", ".."];
+		return array_merge($this->getConfig()->get("exceptionData", []), [".", ".."]);
 	}
 
 	private function deleteMessage(array $deleted): void {
@@ -61,14 +60,7 @@ class Main extends PluginBase {
 
 	public function deleteFilesInFolder(string $path): void {
 		foreach (new \DirectoryIterator($path) as $fileInfo) {
-			if (!in_array($fileInfo->getFilename(), $this->getExceptionData(), true)) {
-				if (!$fileInfo->isDir()) {
-					unlink($fileInfo->getPathname());
-				} else {
-					$this->deleteFilesInFolder($fileInfo->getPathname());
-					rmdir($fileInfo->getPathname());
-				}
-			}
+			$this->delete($fileInfo);
 		}
 	}
 
@@ -82,13 +74,14 @@ class Main extends PluginBase {
 			$fileName = $fileInfo->getFilename();
 			if (!in_array($fileName, $this->getExceptionData())) {
 				if ($fileInfo->isDir()) {
+					$filePathName = $fileInfo->getPathname();
 					// Check if is empty
-					if (count(scandir($fileInfo->getPathname())) <= 2) {
-						rmdir($fileInfo->getPathname());
-						array_push($deleted, $fileInfo->getFilename());
+					if (count(scandir($filePathName)) <= 2) {
+						rmdir($filePathName);
+						array_push($deleted, $fileName);
 					} else {
-						if (!empty($this->deleteEmptyFolder($fileInfo->getPathname()))) {
-							$deleted[] = $fileName;
+						if (!empty($this->deleteEmptyFolder($filePathName))) {
+							array_push($deleted, $fileName);
 						}
 					}
 				}
