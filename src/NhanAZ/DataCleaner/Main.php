@@ -66,7 +66,7 @@ class Main extends PluginBase {
 			$result = true;
 			foreach (new \DirectoryIterator($folder->getPathname()) as $fileInfo) {
 				if ($fileInfo->isFile()) return false;
-				$result &= $this->deleteFolder($fileInfo, true);
+				$result = $result && $this->deleteFolder($fileInfo, true);
 			}
 			return $result;
 		}
