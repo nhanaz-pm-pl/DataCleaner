@@ -64,7 +64,8 @@ class Main extends PluginBase {
 			}
 
 			$result = true;
-			foreach (new \DirectoryIterator($folder->getPathname()) as $fileInfo) {
+			$directoryIterator = new \DirectoryIterator($folder->getPathname());
+			foreach ($directoryIterator as $fileInfo) {
 				if ($fileInfo->isFile()) return false;
 				$result = $result && $this->deleteFolder($fileInfo, true);
 			}
@@ -76,7 +77,8 @@ class Main extends PluginBase {
 	}
 
 	public function deleteFilesInFolder(\DirectoryIterator $folder): void {
-		foreach (new \DirectoryIterator($folder->getPathname()) as $fileInfo) {
+		$directoryIterator = new \DirectoryIterator($folder->getPathname());
+		foreach ($directoryIterator as $fileInfo) {
 			$this->delete($fileInfo, false);
 		}
 	}
@@ -96,7 +98,8 @@ class Main extends PluginBase {
 			);
 
 			$deleted = [];
-			foreach (new \DirectoryIterator($this->getServer()->getDataPath() . "plugin_data" . DIRECTORY_SEPARATOR) as $fileInfo) {
+			$directoryIterator = new \DirectoryIterator($this->getServer()->getDataPath() . "plugin_data" . DIRECTORY_SEPARATOR);
+			foreach ($directoryIterator as $fileInfo) {
 				$fileName = $fileInfo->getFilename();
 				$success = $this->delete($fileInfo, in_array($fileName, $plugins, true));
 				if ($success) {
