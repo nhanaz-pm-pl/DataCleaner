@@ -41,7 +41,7 @@ class Main extends PluginBase {
 			return false;
 		}
 
-		return unlink($file->getPathname());
+		return @unlink($file->getPathname());
 	}
 
 	/**
@@ -60,7 +60,7 @@ class Main extends PluginBase {
 			$filePathName = $folder->getPathname();
 			// Check if is empty
 			if (count(scandir($filePathName)) <= 2) {
-				return rmdir($filePathName);
+				return @rmdir($filePathName);
 			}
 
 			$result = true;
@@ -72,7 +72,7 @@ class Main extends PluginBase {
 		}
 
 		$this->deleteFilesInFolder($folder);
-		return rmdir($folder->getPathname());
+		return @rmdir($folder->getPathname());
 	}
 
 	public function deleteFilesInFolder(\DirectoryIterator $folder): void {
