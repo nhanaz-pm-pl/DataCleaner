@@ -26,9 +26,11 @@ class Main extends PluginBase {
 	public function delete(\DirectoryIterator $fileInfo, bool $justEmpty = false): bool {
 		if ($fileInfo->isDir()) {
 			return $this->deleteFolder($fileInfo, $justEmpty);
+		} elseif ($fileInfo->isFile()) {
+			return $this->deleteFile($fileInfo);
 		}
 
-		return $this->deleteFile($fileInfo);
+		throw new \InvalidArgumentException($fileInfo->getFilename() . " is a " . $fileInfo->getType() . " but he must be a file or folder");
 	}
 
 	/**
@@ -36,7 +38,7 @@ class Main extends PluginBase {
 	 */
 	public function deleteFile(\DirectoryIterator $file): bool {
 		if (!$file->isFile()) {
-			throw new \InvalidArgumentException($file->getFilename() . " file must be a file and not a folder");
+			throw new \InvalidArgumentException($file->getFilename() . " is a " . $file->getType() . " but he must be a file");
 		} elseif (in_array($file->getFilename(), $this->getExceptionData(), true)) {
 			return false;
 		}
@@ -51,36 +53,45 @@ class Main extends PluginBase {
 	 */
 	public function deleteFolder(\DirectoryIterator $folder, bool $justEmpty = false): bool {
 		if (!$folder->isDir()) {
-			throw new \InvalidArgumentException($folder->getFilename() . " file must be a folder and not a file");
+			throw new \InvalidArgumentException($folder->getFilename() . " is a " . $folder->getType() . " but he must be a folder");
 		} elseif (in_array($folder->getFilename(), $this->getExceptionData(), true)) {
 			return false;
 		}
 
 		if ($justEmpty) {
+			$directoryIterator = new \DirectoryIterator($folder->getPathname());
+			foreach ($directoryIterator as $fileInfo) {
+				if ($fileInfo->isFile()) return false;
+				if (!$fileInfo->isDot()) {
+					if (!$this->deleteFolder($fileInfo, true)) {
+						return false;
+					}
+				}
+			}
+
 			$filePathName = $folder->getPathname();
 			// Check if is empty
 			if (count(scandir($filePathName)) <= 2) {
 				return @rmdir($filePathName);
 			}
-
-			$result = true;
-			$directoryIterator = new \DirectoryIterator($folder->getPathname());
-			foreach ($directoryIterator as $fileInfo) {
-				if ($fileInfo->isFile()) return false;
-				$result = $result && $this->deleteFolder($fileInfo, true);
-			}
-			return $result;
+		} elseif ($this->deleteFilesInFolder($folder)) {
+			return @rmdir($folder->getPathname());
 		}
-
-		$this->deleteFilesInFolder($folder);
-		return @rmdir($folder->getPathname());
+		
+		return false;
 	}
 
-	public function deleteFilesInFolder(\DirectoryIterator $folder): void {
+	/**
+	 * @return bool true on success or false on failure.
+	 */
+	public function deleteFilesInFolder(\DirectoryIterator $folder): bool {
+		$result = true;
 		$directoryIterator = new \DirectoryIterator($folder->getPathname());
 		foreach ($directoryIterator as $fileInfo) {
-			$this->delete($fileInfo, false);
+			$result = $result && $this->delete($fileInfo, false);
 		}
+
+		return $result;
 	}
 
 	protected function onEnable(): void {
