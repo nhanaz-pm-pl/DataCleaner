@@ -85,13 +85,16 @@ class Main extends PluginBase {
 	 * @return bool true on success or false on failure.
 	 */
 	public function deleteFilesInFolder(\DirectoryIterator $folder): bool {
-		$result = true;
 		$directoryIterator = new \DirectoryIterator($folder->getPathname());
 		foreach ($directoryIterator as $fileInfo) {
-			$result = $result && $this->delete($fileInfo, false);
+			if (!$fileInfo->isDot()) {
+				if (!$this->delete($fileInfo, false)) {
+					return false;
+				}
+			}
 		}
 
-		return $result;
+		return true;
 	}
 
 	protected function onEnable(): void {
