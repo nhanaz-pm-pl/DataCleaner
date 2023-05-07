@@ -77,7 +77,7 @@ class Main extends PluginBase {
 		} elseif ($this->deleteFilesInFolder($folder)) {
 			return @rmdir($folder->getPathname());
 		}
-		
+
 		return false;
 	}
 
