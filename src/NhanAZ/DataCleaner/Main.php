@@ -10,96 +10,117 @@ use pocketmine\scheduler\ClosureTask;
 
 class Main extends PluginBase {
 
-	// Sorry Poggit Reviewers, The code of this plugin is not clean!
-
-	private array $deletedData = [];
-
-	private function getDataPath() {
-		return $this->getServer()->getDataPath() . "plugin_data" . DIRECTORY_SEPARATOR;
-	}
-
 	private function getExceptionData(): array {
-		$exceptionData = $this->getConfig()->get("exceptionData");
-		return $exceptionData[] = [".", ".."];
+		return array_merge($this->getConfig()->get("exceptionData", []), [".", ".."]);
 	}
 
-	private function deleteMessage() {
-		$deletedData = implode("§f,§a ", $this->deletedData);
-		$dataCount = count($this->deletedData);
-		$deleteMessage = "§fDeleted data ($dataCount): §a$deletedData";
-		$this->getLogger()->info($deleteMessage);
-	}
-
-	private function deleteDir($dir = null): void {
-		if (is_dir($dir)) {
-			$objects = scandir($dir);
-			foreach ($objects as $object) {
-				if ($object != "." && $object != "..") {
-					$path = $dir . DIRECTORY_SEPARATOR . $object;
-					if (is_dir($path)) $this->deleteDir($path);
-					else unlink($path);
-				}
-			}
-			reset($objects);
-			rmdir($dir);
-		}
-	}
-
-	private function deleteEmptyFolder(): void {
-		$dataPath = $this->getDataPath();
-		foreach (scandir($dataPath) as $data) {
-			$exceptionData = $this->getExceptionData();
-			if (!in_array($data, $exceptionData)) {
-				foreach (array_diff(scandir($dataPath), [".", ".."]) as $data) {
-					$dir = $dataPath . $data;
-					if (is_dir($dir)) {
-						if (is_readable($dir) && count(scandir($dir)) == 2) {
-							rmdir($dir);
-							array_push($this->deletedData, $data);
-						}
-					}
-				}
-			}
-		}
+	private function deleteMessage(array $deleted): void {
+		$this->getLogger()->info("§fDeleted data (" . count($deleted) . "): §a" . implode("§f,§a ", $deleted));
 	}
 
 	/**
-	 * @priority LOWEST
+	 * @param bool $justEmpty (only for folders) true delete the folder only if it is empty or false delete the folder and all its contents
+	 *
+	 * @return bool true on success or false on failure.
 	 */
+	public function delete(\DirectoryIterator $fileInfo, bool $justEmpty = false): bool {
+		if ($fileInfo->isDir()) {
+			return $this->deleteFolder($fileInfo, $justEmpty);
+		} elseif ($fileInfo->isFile()) {
+			return $this->deleteFile($fileInfo);
+		}
+
+		throw new \InvalidArgumentException($fileInfo->getFilename() . " is a " . $fileInfo->getType() . " but he must be a file or folder");
+	}
+
+	/**
+	 * @return bool true on success or false on failure.
+	 */
+	public function deleteFile(\DirectoryIterator $file): bool {
+		if (!$file->isFile()) {
+			throw new \InvalidArgumentException($file->getFilename() . " is a " . $file->getType() . " but he must be a file");
+		} elseif (in_array($file->getFilename(), $this->getExceptionData(), true)) {
+			return false;
+		}
+
+		return @unlink($file->getPathname());
+	}
+
+	/**
+	 * @param bool $justEmpty true delete the folder only if it is empty or false delete the folder and all its contents
+	 *
+	 * @return bool true on success or false on failure.
+	 */
+	public function deleteFolder(\DirectoryIterator $folder, bool $justEmpty = false): bool {
+		if (!$folder->isDir()) {
+			throw new \InvalidArgumentException($folder->getFilename() . " is a " . $folder->getType() . " but he must be a folder");
+		} elseif (in_array($folder->getFilename(), $this->getExceptionData(), true)) {
+			return false;
+		}
+
+		if ($justEmpty) {
+			$directoryIterator = new \DirectoryIterator($folder->getPathname());
+			foreach ($directoryIterator as $fileInfo) {
+				if ($fileInfo->isFile()) return false;
+				if (!$fileInfo->isDot()) {
+					if (!$this->deleteFolder($fileInfo, true)) {
+						return false;
+					}
+				}
+			}
+
+			$filePathName = $folder->getPathname();
+			// Check if is empty
+			if (count(scandir($filePathName)) <= 2) {
+				return @rmdir($filePathName);
+			}
+		} elseif ($this->deleteFilesInFolder($folder)) {
+			return @rmdir($folder->getPathname());
+		}
+
+		return false;
+	}
+
+	/**
+	 * @return bool true on success or false on failure.
+	 */
+	public function deleteFilesInFolder(\DirectoryIterator $folder): bool {
+		$directoryIterator = new \DirectoryIterator($folder->getPathname());
+		foreach ($directoryIterator as $fileInfo) {
+			if (!$fileInfo->isDot()) {
+				if (!$this->delete($fileInfo, false)) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
 	protected function onEnable(): void {
 		$this->saveDefaultConfig();
 		if ($this->getServer()->getConfigGroup()->getProperty("plugins.legacy-data-dir")) {
-			$this->getLogger()->warning("legacy-data-dir detected, please disable it in the pocketmine.yml");
+			$this->getLogger()->warning("legacy-data-dir is true, please set it to false in the pocketmine.yml");
 			return;
 		}
 		$this->getScheduler()->scheduleDelayedTask(new ClosureTask(function (): void {
-			$this->deleteEmptyFolder();
 			$plugins = array_map(
 				function (Plugin $plugin): string {
 					return $plugin->getDescription()->getName();
 				},
 				$this->getServer()->getPluginManager()->getPlugins()
 			);
-			$dataPath = $this->getDataPath();
-			foreach (scandir($dataPath) as $data) {
-				if (!in_array($data, $plugins)) {
-					$exceptionData = $this->getExceptionData();
-					if (!in_array($data, $exceptionData)) {
-						if (is_dir($dataPath . $data)) {
-							$this->deleteDir($dataPath . $data);
-							array_push($this->deletedData, $data);
-						}
-					}
+
+			$deleted = [];
+			$directoryIterator = new \DirectoryIterator($this->getServer()->getDataPath() . "plugin_data" . DIRECTORY_SEPARATOR);
+			foreach ($directoryIterator as $fileInfo) {
+				$fileName = $fileInfo->getFilename();
+				$success = $this->delete($fileInfo, in_array($fileName, $plugins, true));
+				if ($success) {
+					array_push($deleted, $fileName);
 				}
 			}
-			$this->deleteMessage();
-		}), $this->getConfig()->get("delayTime") * 20);
-	}
-
-	/**
-	 * @priority LOWEST
-	 */
-	protected function onDisable(): void {
-		$this->deleteEmptyFolder();
+			$this->deleteMessage($deleted);
+		}), $this->getConfig()->get("delayTime", 1) * 20);
 	}
 }
