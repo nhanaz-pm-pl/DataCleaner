@@ -1,6 +1,6 @@
 ---
 name: DataCleaner
-version: 4.0.0
+version: 5.0.0
 main: NhanAZ\DataCleaner\Main
 api: 4.0.0
 website: https://github.com/NhanAZ
